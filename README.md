@@ -29,3 +29,9 @@ record_id = "CF_RECORD_ID"
 record_name = "home.abc.dev"
 
 ```
+
+CRON 
+
+```bash
+*/5 * * * * /usr/local/bin/dyrs --config /home/abc/dyrs/config.toml >> /var/log/ddns.log 2>&1
+```
