@@ -13,3 +13,19 @@ Use with crontab or systemd to detect changes.
 Endpoints to external provider
 
 Cloudflare, Namecheap support
+
+
+## TOML Based Config
+
+```toml
+check_interval = 300
+ip_source = "https://api.ipify.org"
+
+[cloudflare]
+enabled = true
+api_token = "CF_API_TOKEN"
+zone_id = "CF_ZONE_ID"
+record_id = "CF_RECORD_ID"
+record_name = "home.abc.dev"
+
+```
