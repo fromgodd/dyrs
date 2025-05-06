@@ -1,0 +1,10 @@
+[package]
+name = "dydns_check"
+version = "0.1.0"
+edition = "2021"
+authors = ["Said"]
+description = "Dynamic DNS Companion"
+
+[dependencies]
+reqwest = { version = "0.11", features = ["json"] }
+tokio = { version = "1", features = ["full"] }
