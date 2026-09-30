@@ -1,10 +1,27 @@
 [package]
-name = "dydns_check"
+name = "dyrs"
 version = "0.1.0"
 edition = "2021"
-authors = ["Said"]
-description = "Dynamic DNS Companion"
+description = "Dynamic DNS companion — diagnose the connection you actually have, keep DNS pointed at you, run hooks when your address moves"
+license = "MIT"
+repository = "https://github.com/fromgodd/dyrs"
+readme = "README.md"
+keywords = ["ddns", "dynamic-dns", "cgnat", "ipv6", "stun"]
+categories = ["command-line-utilities", "network-programming"]
 
 [dependencies]
-reqwest = { version = "0.11", features = ["json"] }
-tokio = { version = "1", features = ["full"] }
+# Kept deliberately short. No async runtime: dyrs makes a handful of requests
+# and exits, so tokio would be a whole scheduler for nothing.
+ureq = { version = "2", features = ["json"] }        # HTTP + TLS, synchronous
+serde_json = "1"                                    # Cloudflare speaks JSON
+serde = { version = "1", features = ["derive"] }    # config structs
+toml = "0.8"                                        # the config file itself
+if-addrs = "0.13"                                   # local interface addresses
+getrandom = "0.2"                                   # /dev/urandom on unix, BCrypt on Windows
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true

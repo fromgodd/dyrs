@@ -1,0 +1,78 @@
+# dyrs — copy to /etc/dyrs.toml and edit.
+#
+# Run `dyrs doctor` first. If it tells you that you are behind CGNAT with no
+# IPv6, no DNS setting in this file can make you reachable from outside — read
+# what doctor says before configuring providers.
+
+# Where the last-seen address is remembered between runs. Absolute, because
+# cron's working directory is not worth reasoning about.
+state = "/var/lib/dyrs/state"
+
+# Publish an A record from the address STUN reports. On by default.
+ipv4 = true
+
+# Publish an AAAA record from a global IPv6 address on this machine. Turn this
+# on if `dyrs doctor` found one — behind CGNAT it is the only thing that gives
+# you real inbound reachability, and it needs no external service at all.
+ipv6 = false
+
+# Seconds to wait on any single network call.
+timeout_secs = 4
+
+# Asked in order; an address is believed when two of them agree. All free,
+# no account, no API key. Override only if you run your own.
+stun_servers = [
+    "stun.l.google.com:19302",
+    "stun.cloudflare.com:3478",
+    "stun.nextcloud.com:3478",
+    "stun.sipgate.net:3478",
+]
+
+# ---------------------------------------------------------------- providers
+# Zero or more. Every one of these has a free tier with no payment card.
+# You do not need any of them: see the nsupdate hook at the bottom for the
+# vendor-neutral way to do this.
+
+# [[provider]]
+# kind = "duckdns"
+# domains = "myhome"                 # the name without .duckdns.org
+# token = "..."
+
+# [[provider]]
+# kind = "desec"                     # desec.io — non-profit, open source
+# domain = "myhome.dedyn.io"
+# token = "..."
+
+# [[provider]]
+# kind = "dynv6"
+# hostname = "myhome.dynv6.net"
+# token = "..."
+
+# [[provider]]
+# kind = "cloudflare"                # free tier is fine
+# zone_id = "..."                    # Overview page, bottom right
+# record_name = "home.example.com"   # the record must already exist
+# api_token = "..."                  # scoped to Zone:DNS:Edit
+# proxied = false                    # true breaks anything that is not HTTP
+
+# -------------------------------------------------------------------- hooks
+# Run when the address changes, after the providers above. The command is an
+# argument list, not a shell line. The new address arrives in the environment:
+#   DYRS_IPV4, DYRS_IPV6, DYRS_PREVIOUS
+
+# RFC 2136 — the actual IETF standard for dynamic DNS updates, against any
+# BIND/Knot/PowerDNS including one you run yourself. No vendor, no API.
+# [[on_change]]
+# name = "rfc2136"
+# command = ["/bin/sh", "-c", """
+#   printf 'server ns.example.com\\nupdate delete home.example.com. A\\nupdate add home.example.com. 60 A %s\\nsend\\n' "$DYRS_IPV4" \\
+#     | nsupdate -k /etc/dyrs/tsig.key
+# """]
+
+# [[on_change]]
+# name = "telegram"
+# command = ["/usr/local/bin/notify-ip.sh"]
+
+# [[on_change]]
+# name = "reload wireguard"
+# command = ["systemctl", "reload", "wg-quick@wg0"]
